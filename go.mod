@@ -1,4 +1,4 @@
-module github.com/btcsuite/btcd
+module github.com/DlricezZ/doged
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.1.3
