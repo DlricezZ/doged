@@ -10,8 +10,8 @@ import (
 	"math"
 	"sync"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // calcHashPrevOuts calculates a single hash of all the previous outputs

@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/database"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/database"
+	"github.com/DlricezZ/doged/txscript"
+	"github.com/DlricezZ/doged/wire"
 )
 
 const (
@@ -387,7 +387,7 @@ func (b *BlockChain) calcSequenceLock(node *blockNode, tx *btcutil.Tx, utxoView 
 	// return sequence lock values of -1 indicating that this transaction
 	// can be included within a block at any given height or time.
 	mTx := tx.MsgTx()
-	sequenceLockActive := uint32(mTx.Version) >= 2 && csvSoftforkActive
+	sequenceLockActive := mTx.Version >= 2 && csvSoftforkActive
 	if !sequenceLockActive || IsCoinBase(tx) {
 		return sequenceLock, nil
 	}
@@ -437,7 +437,7 @@ func (b *BlockChain) calcSequenceLock(node *blockNode, tx *btcutil.Tx, utxoView 
 				prevInputHeight = 0
 			}
 			blockNode := node.Ancestor(prevInputHeight)
-			medianTime := CalcPastMedianTime(blockNode)
+			medianTime := blockNode.CalcPastMedianTime()
 
 			// Time based relative time-locks as defined by BIP 68
 			// have a time granularity of RelativeLockSeconds, so
@@ -595,8 +595,7 @@ func (b *BlockChain) connectBlock(node *blockNode, block *btcutil.Block,
 	blockSize := uint64(block.MsgBlock().SerializeSize())
 	blockWeight := uint64(GetBlockWeight(block))
 	state := newBestState(node, blockSize, blockWeight, numTxns,
-		curTotalTxns+numTxns, CalcPastMedianTime(node),
-	)
+		curTotalTxns+numTxns, node.CalcPastMedianTime())
 
 	// Atomically insert info into the database.
 	err = b.db.Update(func(dbTx database.Tx) error {
@@ -709,7 +708,7 @@ func (b *BlockChain) disconnectBlock(node *blockNode, block *btcutil.Block, view
 	blockWeight := uint64(GetBlockWeight(prevBlock))
 	newTotalTxns := curTotalTxns - uint64(len(block.MsgBlock().Transactions))
 	state := newBestState(prevNode, blockSize, blockWeight, numTxns,
-		newTotalTxns, CalcPastMedianTime(prevNode))
+		newTotalTxns, prevNode.CalcPastMedianTime())
 
 	err = b.db.Update(func(dbTx database.Tx) error {
 		// Update best block state.

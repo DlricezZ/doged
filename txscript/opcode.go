@@ -14,12 +14,13 @@ import (
 	"hash"
 	"strings"
 
+	"github.com/DlricezZ/doged/btcec"
+
 	"golang.org/x/crypto/ripemd160"
 
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcec/ecdsa"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // An opcode defines the information related to a txscript opcode.  opfunc, if
@@ -1171,7 +1172,7 @@ func opcodeCheckSequenceVerify(op *opcode, data []byte, vm *Engine) error {
 
 	// Transaction version numbers not high enough to trigger CSV rules must
 	// fail.
-	if uint32(vm.tx.Version) < 2 {
+	if vm.tx.Version < 2 {
 		str := fmt.Sprintf("invalid transaction version: %d",
 			vm.tx.Version)
 		return scriptError(ErrUnsatisfiedLockTime, str)

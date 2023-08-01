@@ -72,7 +72,7 @@ SYS=${BTCDBUILDSYS:-"
 
 # Use the first element of $GOPATH in the case where GOPATH is a list
 # (something that is totally allowed).
-PKG="github.com/btcsuite/btcd"
+PKG="github.com/DlricezZ/doged"
 COMMIT=$(git describe --abbrev=40 --dirty)
 
 for i in $SYS; do

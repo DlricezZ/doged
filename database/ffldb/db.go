@@ -14,11 +14,11 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/database"
-	"github.com/btcsuite/btcd/database/internal/treap"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/database"
+	"github.com/DlricezZ/doged/database/internal/treap"
+	"github.com/DlricezZ/doged/wire"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/comparer"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
@@ -1015,7 +1015,7 @@ func (tx *transaction) notifyActiveIters() {
 	tx.activeIterLock.RUnlock()
 }
 
-// checkClosed returns an error if the database or transaction is closed.
+// checkClosed returns an error if the the database or transaction is closed.
 func (tx *transaction) checkClosed() error {
 	// The transaction is no longer valid if it has been closed.
 	if tx.closed {

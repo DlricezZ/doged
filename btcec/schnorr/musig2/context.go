@@ -5,8 +5,9 @@ package musig2
 import (
 	"fmt"
 
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcec/v2/schnorr"
+	"github.com/DlricezZ/doged/btcec"
+
+	"github.com/DlricezZ/doged/btcec/schnorr"
 )
 
 var (
@@ -234,21 +235,22 @@ func NewContext(signingKey *btcec.PrivateKey, shouldSort bool,
 		opts.keySet = make([]*btcec.PublicKey, 0, opts.numSigners)
 		opts.keySet = append(opts.keySet, pubKey)
 
+		// If early nonce generation is specified, then we'll generate
+		// the nonce now to pass in to the session once all the callers
+		// are known.
+		if opts.earlyNonce {
+			var err error
+			ctx.sessionNonce, err = GenNonces(
+				WithPublicKey(ctx.pubKey),
+				WithNonceSecretKeyAux(signingKey),
+			)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 	default:
 		return nil, ErrSignersNotSpecified
-	}
-
-	// If early nonce generation is specified, then we'll generate the
-	// nonce now to pass in to the session once all the callers are known.
-	if opts.earlyNonce {
-		var err error
-		ctx.sessionNonce, err = GenNonces(
-			WithPublicKey(ctx.pubKey),
-			WithNonceSecretKeyAux(signingKey),
-		)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return ctx, nil

@@ -18,13 +18,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcec"
+
+	"github.com/DlricezZ/doged/blockchain"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/txscript"
+	"github.com/DlricezZ/doged/wire"
 )
 
 const (
@@ -423,7 +424,7 @@ func replaceCoinbaseSigScript(script []byte) func(*wire.MsgBlock) {
 }
 
 // additionalTx returns a function that itself takes a block and modifies it by
-// adding the provided transaction.
+// adding the the provided transaction.
 func additionalTx(tx *wire.MsgTx) func(*wire.MsgBlock) {
 	return func(b *wire.MsgBlock) {
 		b.AddTransaction(tx)

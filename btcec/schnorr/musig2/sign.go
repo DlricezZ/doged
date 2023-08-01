@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/DlricezZ/doged/btcec"
+
 	secp "github.com/decred/dcrd/dcrec/secp256k1/v4"
 
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcec/v2/schnorr"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/btcec/schnorr"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
 )
 
 var (

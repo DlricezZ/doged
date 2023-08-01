@@ -10,7 +10,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/DlricezZ/doged/btcec"
 )
 
 const (
@@ -278,8 +278,7 @@ func TestMuSigEarlyNonce(t *testing.T) {
 		t.Fatalf("unexpected ctx error: %v", err)
 	}
 
-	signers := []*btcec.PublicKey{privKey1.PubKey(), privKey2.PubKey()}
-	numSigners := len(signers)
+	numSigners := 2
 
 	ctx1, err := NewContext(
 		privKey1, true, WithNumSigners(numSigners), WithEarlyNonceGen(),
@@ -290,21 +289,20 @@ func TestMuSigEarlyNonce(t *testing.T) {
 	pubKey1 := ctx1.PubKey()
 
 	ctx2, err := NewContext(
-		privKey2, true, WithKnownSigners(signers), WithEarlyNonceGen(),
+		privKey2, true, WithNumSigners(numSigners), WithEarlyNonceGen(),
 	)
 	if err != nil {
 		t.Fatalf("unable to make ctx: %v", err)
 	}
 	pubKey2 := ctx2.PubKey()
 
-	// At this point, the combined key shouldn't be available for signer 1,
-	// but should be for signer 2, as they know about all signers.
+	// At this point, the combined key shouldn't be available for both
+	// signers, since we only know of the sole signers.
 	if _, err := ctx1.CombinedKey(); !errors.Is(err, ErrNotEnoughSigners) {
 		t.Fatalf("unepxected error: %v", err)
 	}
-	_, err = ctx2.CombinedKey()
-	if err != nil {
-		t.Fatalf("unable to get combined key: %v", err)
+	if _, err := ctx2.CombinedKey(); !errors.Is(err, ErrNotEnoughSigners) {
+		t.Fatalf("unepxected error: %v", err)
 	}
 
 	// The early nonces _should_ be available at this point.
@@ -322,8 +320,8 @@ func TestMuSigEarlyNonce(t *testing.T) {
 		t.Fatalf("expected 1 signer, instead have: %v",
 			ctx1.NumRegisteredSigners())
 	}
-	if ctx2.NumRegisteredSigners() != 2 {
-		t.Fatalf("expected 2 signers, instead have: %v",
+	if ctx2.NumRegisteredSigners() != 1 {
+		t.Fatalf("expected 1 signer, instead have: %v",
 			ctx2.NumRegisteredSigners())
 	}
 
@@ -338,13 +336,20 @@ func TestMuSigEarlyNonce(t *testing.T) {
 		t.Fatalf("unexpected combined key error: %v", err)
 	}
 
-	// We'll now register the other signer for party 1.
+	// We'll now register the other signer for both parties.
 	done, err := ctx1.RegisterSigner(&pubKey2)
 	if err != nil {
 		t.Fatalf("unable to register signer: %v", err)
 	}
 	if !done {
 		t.Fatalf("signer 1 doesn't have all keys")
+	}
+	done, err = ctx2.RegisterSigner(&pubKey1)
+	if err != nil {
+		t.Fatalf("unable to register signer: %v", err)
+	}
+	if !done {
+		t.Fatalf("signer 2 doesn't have all keys")
 	}
 
 	// If we try to register the signer again, we should get an error.

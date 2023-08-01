@@ -11,11 +11,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/txscript"
+	"github.com/DlricezZ/doged/wire"
 )
 
 const (
@@ -421,15 +421,13 @@ func CountP2SHSigOps(tx *btcutil.Tx, isCoinBaseTx bool, utxoView *UtxoViewpoint)
 	return totalSigOps, nil
 }
 
-// CheckBlockHeaderSanity performs some preliminary checks on a block header to
+// checkBlockHeaderSanity performs some preliminary checks on a block header to
 // ensure it is sane before continuing with processing.  These checks are
 // context free.
 //
 // The flags do not modify the behavior of this function directly, however they
 // are needed to pass along to checkProofOfWork.
-func CheckBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int,
-	timeSource MedianTimeSource, flags BehaviorFlags) error {
-
+func checkBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags) error {
 	// Ensure the proof of work bits in the block header is in min/max range
 	// and the block hash is less than the target value described by the
 	// bits.
@@ -469,7 +467,7 @@ func CheckBlockHeaderSanity(header *wire.BlockHeader, powLimit *big.Int,
 func checkBlockSanity(block *btcutil.Block, powLimit *big.Int, timeSource MedianTimeSource, flags BehaviorFlags) error {
 	msgBlock := block.MsgBlock()
 	header := &msgBlock.Header
-	err := CheckBlockHeaderSanity(header, powLimit, timeSource, flags)
+	err := checkBlockHeaderSanity(header, powLimit, timeSource, flags)
 	if err != nil {
 		return err
 	}
@@ -635,30 +633,22 @@ func checkSerializedHeight(coinbaseTx *btcutil.Tx, wantHeight int32) error {
 	return nil
 }
 
-// CheckBlockHeaderContext performs several validation checks on the block header
+// checkBlockHeaderContext performs several validation checks on the block header
 // which depend on its position within the block chain.
 //
 // The flags modify the behavior of this function as follows:
 //   - BFFastAdd: All checks except those involving comparing the header against
 //     the checkpoints are not performed.
 //
-// The skipCheckpoint boolean is used so that libraries can skip the checkpoint
-// sanity checks.
-//
 // This function MUST be called with the chain state lock held (for writes).
-// NOTE: Ignore the above lock requirement if this function is not passed a
-// *Blockchain instance as the ChainCtx argument.
-func CheckBlockHeaderContext(header *wire.BlockHeader, prevNode HeaderCtx,
-	flags BehaviorFlags, c ChainCtx, skipCheckpoint bool) error {
-
+func (b *BlockChain) checkBlockHeaderContext(header *wire.BlockHeader, prevNode *blockNode, flags BehaviorFlags) error {
 	fastAdd := flags&BFFastAdd == BFFastAdd
 	if !fastAdd {
 		// Ensure the difficulty specified in the block header matches
 		// the calculated difficulty based on the previous block and
 		// difficulty retarget rules.
-		expectedDifficulty, err := calcNextRequiredDifficulty(
-			prevNode, header.Timestamp, c,
-		)
+		expectedDifficulty, err := b.calcNextRequiredDifficulty(prevNode,
+			header.Timestamp)
 		if err != nil {
 			return err
 		}
@@ -671,7 +661,7 @@ func CheckBlockHeaderContext(header *wire.BlockHeader, prevNode HeaderCtx,
 
 		// Ensure the timestamp for the block header is after the
 		// median time of the last several blocks (medianTimeBlocks).
-		medianTime := CalcPastMedianTime(prevNode)
+		medianTime := prevNode.CalcPastMedianTime()
 		if !header.Timestamp.After(medianTime) {
 			str := "block timestamp of %v is not after expected %v"
 			str = fmt.Sprintf(str, header.Timestamp, medianTime)
@@ -681,30 +671,11 @@ func CheckBlockHeaderContext(header *wire.BlockHeader, prevNode HeaderCtx,
 
 	// The height of this block is one more than the referenced previous
 	// block.
-	blockHeight := prevNode.Height() + 1
-
-	// Reject outdated block versions once a majority of the network
-	// has upgraded.  These were originally voted on by BIP0034,
-	// BIP0065, and BIP0066.
-	params := c.ChainParams()
-	if header.Version < 2 && blockHeight >= params.BIP0034Height ||
-		header.Version < 3 && blockHeight >= params.BIP0066Height ||
-		header.Version < 4 && blockHeight >= params.BIP0065Height {
-
-		str := "new blocks with version %d are no longer valid"
-		str = fmt.Sprintf(str, header.Version)
-		return ruleError(ErrBlockVersionTooOld, str)
-	}
-
-	if skipCheckpoint {
-		// If the caller wants us to skip the checkpoint checks, we'll
-		// return early.
-		return nil
-	}
+	blockHeight := prevNode.height + 1
 
 	// Ensure chain matches up to predetermined checkpoints.
 	blockHash := header.BlockHash()
-	if !c.VerifyCheckpoint(blockHeight, &blockHash) {
+	if !b.verifyCheckpoint(blockHeight, &blockHash) {
 		str := fmt.Sprintf("block at height %d does not match "+
 			"checkpoint hash", blockHeight)
 		return ruleError(ErrBadCheckpoint, str)
@@ -714,15 +685,28 @@ func CheckBlockHeaderContext(header *wire.BlockHeader, prevNode HeaderCtx,
 	// chain before it.  This prevents storage of new, otherwise valid,
 	// blocks which build off of old blocks that are likely at a much easier
 	// difficulty and therefore could be used to waste cache and disk space.
-	checkpointNode, err := c.FindPreviousCheckpoint()
+	checkpointNode, err := b.findPreviousCheckpoint()
 	if err != nil {
 		return err
 	}
-	if checkpointNode != nil && blockHeight < checkpointNode.Height() {
+	if checkpointNode != nil && blockHeight < checkpointNode.height {
 		str := fmt.Sprintf("block at height %d forks the main chain "+
 			"before the previous checkpoint at height %d",
-			blockHeight, checkpointNode.Height())
+			blockHeight, checkpointNode.height)
 		return ruleError(ErrForkTooOld, str)
+	}
+
+	// Reject outdated block versions once a majority of the network
+	// has upgraded.  These were originally voted on by BIP0034,
+	// BIP0065, and BIP0066.
+	params := b.chainParams
+	if header.Version < 2 && blockHeight >= params.BIP0034Height ||
+		header.Version < 3 && blockHeight >= params.BIP0066Height ||
+		header.Version < 4 && blockHeight >= params.BIP0065Height {
+
+		str := "new blocks with version %d are no longer valid"
+		str = fmt.Sprintf(str, header.Version)
+		return ruleError(ErrBlockVersionTooOld, str)
 	}
 
 	return nil
@@ -742,7 +726,7 @@ func CheckBlockHeaderContext(header *wire.BlockHeader, prevNode HeaderCtx,
 func (b *BlockChain) checkBlockContext(block *btcutil.Block, prevNode *blockNode, flags BehaviorFlags) error {
 	// Perform all block header related validation checks.
 	header := &block.MsgBlock().Header
-	err := CheckBlockHeaderContext(header, prevNode, flags, b, false)
+	err := b.checkBlockHeaderContext(header, prevNode, flags)
 	if err != nil {
 		return err
 	}
@@ -762,7 +746,7 @@ func (b *BlockChain) checkBlockContext(block *btcutil.Block, prevNode *blockNode
 		// timestamps for all lock-time based checks.
 		blockTime := header.Timestamp
 		if csvState == ThresholdActive {
-			blockTime = CalcPastMedianTime(prevNode)
+			blockTime = prevNode.CalcPastMedianTime()
 		}
 
 		// The height of this block is one more than the referenced
@@ -1202,7 +1186,7 @@ func (b *BlockChain) checkConnectBlock(node *blockNode, block *btcutil.Block, vi
 
 		// We obtain the MTP of the *previous* block in order to
 		// determine if transactions in the current block are final.
-		medianTime := CalcPastMedianTime(node.parent)
+		medianTime := node.parent.CalcPastMedianTime()
 
 		// Additionally, if the CSV soft-fork package is now active,
 		// then we also enforce the relative sequence number based
@@ -1304,68 +1288,3 @@ func (b *BlockChain) CheckConnectBlockTemplate(block *btcutil.Block) error {
 	newNode := newBlockNode(&header, tip)
 	return b.checkConnectBlock(newNode, block, view, nil)
 }
-
-// ChainParams returns the Blockchain's configured chaincfg.Params.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) ChainParams() *chaincfg.Params {
-	return b.chainParams
-}
-
-// BlocksPerRetarget returns the number of blocks before retargeting occurs.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) BlocksPerRetarget() int32 {
-	return b.blocksPerRetarget
-}
-
-// MinRetargetTimespan returns the minimum amount of time to use in the
-// difficulty calculation.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) MinRetargetTimespan() int64 {
-	return b.minRetargetTimespan
-}
-
-// MaxRetargetTimespan returns the maximum amount of time to use in the
-// difficulty calculation.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) MaxRetargetTimespan() int64 {
-	return b.maxRetargetTimespan
-}
-
-// VerifyCheckpoint checks that the height and hash match the stored
-// checkpoints.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) VerifyCheckpoint(height int32,
-	hash *chainhash.Hash) bool {
-
-	return b.verifyCheckpoint(height, hash)
-}
-
-// FindPreviousCheckpoint finds the checkpoint we've encountered during
-// validation.
-//
-// NOTE: Part of the ChainCtx interface.
-func (b *BlockChain) FindPreviousCheckpoint() (HeaderCtx, error) {
-	checkpoint, err := b.findPreviousCheckpoint()
-	if err != nil {
-		return nil, err
-	}
-
-	if checkpoint == nil {
-		// This check is necessary because if we just return the nil
-		// blockNode as a HeaderCtx, a caller performing a nil-check
-		// will fail. This is a quirk of go where a nil value stored in
-		// an interface is different from the actual nil interface.
-		return nil, nil
-	}
-
-	return checkpoint, err
-}
-
-// A compile-time assertion to ensure BlockChain implements the ChainCtx
-// interface.
-var _ ChainCtx = (*BlockChain)(nil)

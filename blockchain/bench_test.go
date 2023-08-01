@@ -7,8 +7,8 @@ package blockchain
 import (
 	"testing"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // BenchmarkIsCoinBase performs a simple benchmark against the IsCoinBase

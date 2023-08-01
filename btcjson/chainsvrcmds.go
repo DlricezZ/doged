@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // AddNodeSubCmd defines the type used in the addnode JSON-RPC command for the
@@ -206,6 +206,24 @@ type GetBlockCmd struct {
 // for optional parameters will use the default value.
 func NewGetBlockCmd(hash string, verbosity *int) *GetBlockCmd {
 	return &GetBlockCmd{
+		Hash:      hash,
+		Verbosity: verbosity,
+	}
+}
+
+// GetBlockCmd defines the getblock JSON-RPC command.
+type GetBlockBoolCmd struct {
+	Hash      string
+	Verbosity *bool `jsonrpcdefault:"false"`
+}
+
+// NewGetBlockCmd returns a new instance which can be used to issue a getblock
+// JSON-RPC command.
+//
+// The parameters which are pointers indicate they are optional.  Passing nil
+// for optional parameters will use the default value.
+func NewGetBlockBoolCmd(hash string, verbosity *bool) *GetBlockBoolCmd {
+	return &GetBlockBoolCmd{
 		Hash:      hash,
 		Verbosity: verbosity,
 	}
@@ -665,6 +683,28 @@ func NewGetRawTransactionCmd(txHash string, verbose *int) *GetRawTransactionCmd 
 	}
 }
 
+// GetRawTransactionCmd defines the getrawtransaction JSON-RPC command.
+//
+// NOTE: This field is an int versus a bool to remain compatible with Bitcoin
+// Core even though it really should be a bool.
+type GetRawTransactionBoolCmd struct {
+	Txid    string
+	Verbose *bool `jsonrpcdefault:"false"`
+}
+
+// NewGetRawTransactionCmd returns a new instance which can be used to issue a
+// getrawtransaction JSON-RPC command.
+//
+// The parameters which are pointers indicate they are optional.  Passing nil
+// for optional parameters will use the default value.
+
+func NewGetRawTransactionBoolCmd(txHash string, verbose *bool) *GetRawTransactionBoolCmd {
+	return &GetRawTransactionBoolCmd{
+		Txid:    txHash,
+		Verbose: verbose,
+	}
+}
+
 // GetTxOutCmd defines the gettxout JSON-RPC command.
 type GetTxOutCmd struct {
 	Txid           string
@@ -1054,7 +1094,7 @@ func init() {
 	MustRegisterCmd("fundrawtransaction", (*FundRawTransactionCmd)(nil), flags)
 	MustRegisterCmd("getaddednodeinfo", (*GetAddedNodeInfoCmd)(nil), flags)
 	MustRegisterCmd("getbestblockhash", (*GetBestBlockHashCmd)(nil), flags)
-	MustRegisterCmd("getblock", (*GetBlockCmd)(nil), flags)
+	MustRegisterCmd("getblock", (*GetBlockBoolCmd)(nil), flags)
 	MustRegisterCmd("getblockchaininfo", (*GetBlockChainInfoCmd)(nil), flags)
 	MustRegisterCmd("getblockcount", (*GetBlockCountCmd)(nil), flags)
 	MustRegisterCmd("getblockfilter", (*GetBlockFilterCmd)(nil), flags)
@@ -1081,7 +1121,7 @@ func init() {
 	MustRegisterCmd("getnodeaddresses", (*GetNodeAddressesCmd)(nil), flags)
 	MustRegisterCmd("getpeerinfo", (*GetPeerInfoCmd)(nil), flags)
 	MustRegisterCmd("getrawmempool", (*GetRawMempoolCmd)(nil), flags)
-	MustRegisterCmd("getrawtransaction", (*GetRawTransactionCmd)(nil), flags)
+	MustRegisterCmd("getrawtransaction", (*GetRawTransactionBoolCmd)(nil), flags)
 	MustRegisterCmd("gettxout", (*GetTxOutCmd)(nil), flags)
 	MustRegisterCmd("gettxoutproof", (*GetTxOutProofCmd)(nil), flags)
 	MustRegisterCmd("gettxoutsetinfo", (*GetTxOutSetInfoCmd)(nil), flags)

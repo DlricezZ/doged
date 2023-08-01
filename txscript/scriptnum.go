@@ -89,19 +89,18 @@ func checkMinimalDataEncoding(v []byte) error {
 // Bytes returns the number serialized as a little endian with a sign bit.
 //
 // Example encodings:
-//
-//	   127 -> [0x7f]
-//	  -127 -> [0xff]
-//	   128 -> [0x80 0x00]
-//	  -128 -> [0x80 0x80]
-//	   129 -> [0x81 0x00]
-//	  -129 -> [0x81 0x80]
-//	   256 -> [0x00 0x01]
-//	  -256 -> [0x00 0x81]
-//	 32767 -> [0xff 0x7f]
-//	-32767 -> [0xff 0xff]
-//	 32768 -> [0x00 0x80 0x00]
-//	-32768 -> [0x00 0x80 0x80]
+//       127 -> [0x7f]
+//      -127 -> [0xff]
+//       128 -> [0x80 0x00]
+//      -128 -> [0x80 0x80]
+//       129 -> [0x81 0x00]
+//      -129 -> [0x81 0x80]
+//       256 -> [0x00 0x01]
+//      -256 -> [0x00 0x81]
+//     32767 -> [0xff 0x7f]
+//    -32767 -> [0xff 0xff]
+//     32768 -> [0x00 0x80 0x00]
+//    -32768 -> [0x00 0x80 0x80]
 func (n scriptNum) Bytes() []byte {
 	// Zero encodes as an empty byte slice.
 	if n == 0 {
@@ -197,7 +196,7 @@ func (n scriptNum) Int32() int32 {
 // See the Bytes function documentation for example encodings.
 func MakeScriptNum(v []byte, requireMinimal bool, scriptNumLen int) (scriptNum, error) {
 	// Interpreting data requires that it is not larger than
-	// the passed scriptNumLen value.
+	// the the passed scriptNumLen value.
 	if len(v) > scriptNumLen {
 		str := fmt.Sprintf("numeric value encoded as %x is %d bytes "+
 			"which exceeds the max allowed of %d", v, len(v),

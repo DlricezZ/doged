@@ -10,9 +10,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcjson"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // FutureGetBestBlockHashResult is a future promise to deliver the result of a
@@ -198,6 +198,35 @@ func (c *Client) GetBlockVerboseAsync(blockHash *chainhash.Hash) FutureGetBlockV
 	// From the bitcoin-cli getblock documentation:
 	// "If verbosity is 1, returns an Object with information about block ."
 	cmd := btcjson.NewGetBlockCmd(hash, btcjson.Int(1))
+	return FutureGetBlockVerboseResult{
+		client:   c,
+		hash:     hash,
+		Response: c.SendCmd(cmd),
+	}
+}
+
+// GetBlockVerbose returns a data structure from the server with information
+// about a block given its hash.
+//
+// See GetBlockVerboseTx to retrieve transaction data structures as well.
+// See GetBlock to retrieve a raw block instead.
+func (c *Client) GetBlockVerboseBool(blockHash *chainhash.Hash) (*btcjson.GetBlockVerboseResult, error) {
+	return c.GetBlockVerboseBoolAsync(blockHash).Receive()
+}
+
+// GetBlockVerboseAsync returns an instance of a type that can be used to get
+// the result of the RPC at some future time by invoking the Receive function on
+// the returned instance.
+//
+// See GetBlockVerbose for the blocking version and more details.
+func (c *Client) GetBlockVerboseBoolAsync(blockHash *chainhash.Hash) FutureGetBlockVerboseResult {
+	hash := ""
+	if blockHash != nil {
+		hash = blockHash.String()
+	}
+	// From the bitcoin-cli getblock documentation:
+	// "If verbosity is 1, returns an Object with information about block ."
+	cmd := btcjson.NewGetBlockBoolCmd(hash, btcjson.Bool(true))
 	return FutureGetBlockVerboseResult{
 		client:   c,
 		hash:     hash,

@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/btcsuite/btcd/btcjson"
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcjson"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // *****************************
@@ -2661,7 +2661,7 @@ func (c *Client) WalletCreateFundedPsbt(
 type FutureWalletProcessPsbtResult chan *Response
 
 // Receive waits for the Response promised by the future and returns an updated
-// PSBT with signed inputs from the wallet and a boolen indicating if the
+// PSBT with signed inputs from the wallet and a boolen indicating if the the
 // transaction has a complete set of signatures.
 func (r FutureWalletProcessPsbtResult) Receive() (*btcjson.WalletProcessPsbtResult, error) {
 	res, err := ReceiveFuture(r)

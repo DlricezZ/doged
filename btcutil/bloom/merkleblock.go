@@ -5,10 +5,10 @@
 package bloom
 
 import (
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/blockchain"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // merkleBlock is used to house intermediate information needed to generate a
@@ -21,7 +21,7 @@ type merkleBlock struct {
 	bits        []byte
 }
 
-// calcTreeWidth calculates and returns the number of nodes (width) or a
+// calcTreeWidth calculates and returns the the number of nodes (width) or a
 // merkle tree at the given depth-first height.
 func (m *merkleBlock) calcTreeWidth(height uint32) uint32 {
 	return (m.numTx + (1 << height) - 1) >> height

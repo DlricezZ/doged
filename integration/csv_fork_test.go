@@ -15,14 +15,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/integration/rpctest"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/blockchain"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/integration/rpctest"
+	"github.com/DlricezZ/doged/txscript"
+	"github.com/DlricezZ/doged/wire"
 )
 
 const (
@@ -96,16 +95,20 @@ func makeTestOutput(r *rpctest.Harness, t *testing.T,
 //
 // Overview:
 //
-// - Pre soft-fork:
-//  1. Transactions with non-final lock-times from the PoV of MTP should be
+//   - Pre soft-fork:
+//
+//   - Transactions with non-final lock-times from the PoV of MTP should be
 //     rejected from the mempool.
-//  2. Transactions within non-final MTP based lock-times should be accepted
+//
+//   - Transactions within non-final MTP based lock-times should be accepted
 //     in valid blocks.
 //
-// - Post soft-fork:
-//  1. Transactions with non-final lock-times from the PoV of MTP should be
+//   - Post soft-fork:
+//
+//   - Transactions with non-final lock-times from the PoV of MTP should be
 //     rejected from the mempool and when found within otherwise valid blocks.
-//  2. Transactions with final lock-times from the PoV of MTP should be
+//
+//   - Transactions with final lock-times from the PoV of MTP should be
 //     accepted to the mempool and mined in future block.
 func TestBIP0113Activation(t *testing.T) {
 	t.Parallel()
@@ -392,13 +395,12 @@ func assertTxInBlock(r *rpctest.Harness, t *testing.T, blockHash *chainhash.Hash
 // 112 and BIP 68 rule-set after the activation of the CSV-package soft-fork.
 //
 // Overview:
-// - Pre soft-fork:
-//  1. A transaction spending a CSV output validly should be rejected from the
+//   - Pre soft-fork:
+//   - A transaction spending a CSV output validly should be rejected from the
 //     mempool, but accepted in a valid generated block including the
 //     transaction.
-//
-// - Post soft-fork:
-//  1. See the cases exercised within the table driven tests towards the end
+//   - Post soft-fork:
+//   - See the cases exercised within the table driven tests towards the end
 //     of this test.
 func TestBIP0068AndBIP0112Activation(t *testing.T) {
 	t.Parallel()

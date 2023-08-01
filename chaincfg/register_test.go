@@ -1,12 +1,10 @@
-package chaincfg_test
+package chaincfg
 
 import (
 	"bytes"
 	"reflect"
 	"strings"
 	"testing"
-
-	. "github.com/btcsuite/btcd/chaincfg"
 )
 
 // Define some of the required parameters for a user-registered

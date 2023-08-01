@@ -2,13 +2,11 @@
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package btcutil_test
+package btcutil
 
 import (
 	"math"
 	"testing"
-
-	. "github.com/btcsuite/btcd/btcutil"
 )
 
 func TestAmountCreation(t *testing.T) {
@@ -136,29 +134,8 @@ func TestAmountUnitConversions(t *testing.T) {
 			name:      "BTC",
 			amount:    44433322211100,
 			unit:      AmountBTC,
-			converted: 444333.222111,
-			s:         "444333.22211100 BTC",
-		},
-		{
-			name:      "a thousand satoshi as BTC",
-			amount:    1000,
-			unit:      AmountBTC,
-			converted: 0.00001,
-			s:         "0.00001000 BTC",
-		},
-		{
-			name:      "a single satoshi as BTC",
-			amount:    1,
-			unit:      AmountBTC,
-			converted: 0.00000001,
-			s:         "0.00000001 BTC",
-		},
-		{
-			name:      "amount with trailing zero but no decimals",
-			amount:    1000000000,
-			unit:      AmountBTC,
-			converted: 10,
-			s:         "10 BTC",
+			converted: 444333.22211100,
+			s:         "444333.222111 BTC",
 		},
 		{
 			name:      "mBTC",

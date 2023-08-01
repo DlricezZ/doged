@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/database"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/database"
+	"github.com/DlricezZ/doged/wire"
 )
 
 const (
@@ -243,10 +243,10 @@ type SpentTxOut struct {
 	// Amount is the amount of the output.
 	Amount int64
 
-	// PkScipt is the public key script for the output.
+	// PkScipt is the the public key script for the output.
 	PkScript []byte
 
-	// Height is the height of the block containing the creating tx.
+	// Height is the height of the the block containing the creating tx.
 	Height int32
 
 	// Denotes if the creating tx is a coinbase.
@@ -1236,7 +1236,7 @@ func (b *BlockChain) initChainState() error {
 		blockWeight := uint64(GetBlockWeight(btcutil.NewBlock(&block)))
 		numTxns := uint64(len(block.Transactions))
 		b.stateSnapshot = newBestState(tip, blockSize, blockWeight,
-			numTxns, state.totalTxns, CalcPastMedianTime(tip))
+			numTxns, state.totalTxns, tip.CalcPastMedianTime())
 
 		return nil
 	})

@@ -9,9 +9,9 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/btcutil"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // Coin represents a spendable transaction outpoint
@@ -75,7 +75,8 @@ func (cs *CoinSet) TotalValue() (value btcutil.Amount) {
 }
 
 // TotalValueAge returns the total value * number of confirmations
-// of the coins in the set.
+//
+//	of the coins in the set.
 func (cs *CoinSet) TotalValueAge() (valueAge int64) {
 	return cs.totalValueAge
 }

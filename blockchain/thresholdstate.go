@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/DlricezZ/doged/chaincfg/chainhash"
+	"github.com/DlricezZ/doged/wire"
 )
 
 // ThresholdState define the various threshold states used when voting on
@@ -153,7 +153,7 @@ func (b *BlockChain) PastMedianTime(blockHeader *wire.BlockHeader) (time.Time, e
 
 	blockNode := newBlockNode(blockHeader, prevNode)
 
-	return CalcPastMedianTime(blockNode), nil
+	return blockNode.CalcPastMedianTime(), nil
 }
 
 // thresholdStateTransition given a state, a previous node, and a toeholds
